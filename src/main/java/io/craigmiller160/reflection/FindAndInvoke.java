@@ -23,7 +23,7 @@ public class FindAndInvoke {
             newParams = MethodUtils.convertParamsForVarArgsMethod(oam.getMethod(), newParams);
         }
 
-        return oam.getMethod().invoke(oam.getObject(), newParams);
+        return invokeMethod(oam, newParams);
     }
 
     public static Object findAndInvokeMethod(Object[] objects, String methodSig, Object...newParams)
@@ -37,12 +37,30 @@ public class FindAndInvoke {
             newParams = MethodUtils.convertParamsForVarArgsMethod(oam.getMethod(), newParams);
         }
 
-        return oam.getMethod().invoke(oam.getObject(), newParams);
+        return invokeMethod(oam, newParams);
     }
 
     public static Object findAndInvokeMethod(Collection<?> objects, String methodSig, Object...newParams)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return findAndInvokeMethod(objects.toArray(), methodSig, newParams);
+    }
+
+    private static Object invokeMethod(ObjectAndMethod oam, Object...newParams)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException{
+        Object result = null;
+        try{
+            result = oam.getMethod().invoke(oam.getObject(), newParams);
+        }
+        catch(InvocationTargetException ex){
+            if(ex.getCause() instanceof RuntimeException){
+                throw (RuntimeException) ex.getCause();
+            }
+            else if(ex.getCause() instanceof Error){
+                throw (Error) ex.getCause();
+            }
+            throw ex;
+        }
+        return result;
     }
 
     //TODO document this
