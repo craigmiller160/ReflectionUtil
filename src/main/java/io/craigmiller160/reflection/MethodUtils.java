@@ -15,13 +15,15 @@ public class MethodUtils {
             return newParams;
         }
 
+        int methodParamCount = method.getParameterTypes().length;
+
         if(newParams.length > 0){
-            if(newParams.length > method.getParameterCount()){
-                int varArgsLength = newParams.length - method.getParameterCount() + 1;
+            if(newParams.length > methodParamCount){
+                int varArgsLength = newParams.length - methodParamCount + 1;
                 newParams = convertParams(method, varArgsLength, newParams);
             }
-            else if(newParams.length == method.getParameterCount()){
-                int varArgsIndex = method.getParameterCount() - 1;
+            else if(newParams.length == methodParamCount){
+                int varArgsIndex = methodParamCount - 1;
                 if(method.getParameterTypes()[varArgsIndex].equals(newParams[varArgsIndex].getClass()) ||
                         method.getParameterTypes()[varArgsIndex].isAssignableFrom(newParams[varArgsIndex].getClass())){
                     //This is if an array is already provided
@@ -29,7 +31,7 @@ public class MethodUtils {
                 }
                 newParams = convertParams(method, 1, newParams);
             }
-            else if(newParams.length == method.getParameterCount() - 1){
+            else if(newParams.length == methodParamCount - 1){
                 newParams = convertParams(method, 0, newParams);
             }
         }
@@ -58,15 +60,17 @@ public class MethodUtils {
     }
 
     public static boolean isValidInvocation(Method method, Object...newParams){
+        int methodParamCount = method.getParameterTypes().length;
+
         boolean result = false;
         if(newParams.length > 0){
-            if(newParams.length > method.getParameterCount()){
+            if(newParams.length > methodParamCount){
                 //If more params are provided than are contained in the method, the method MUST be varArgs.
                 if(method.isVarArgs()){
                     result = validateParamsWithVarArgs(method, newParams);
                 }
             }
-            else if(newParams.length == method.getParameterCount()){
+            else if(newParams.length == methodParamCount){
                 //If their lengths are equal, may or may not be varargs.
                 if(method.isVarArgs()){
                     result = validateParamsWithVarArgs(method, newParams);
@@ -75,7 +79,7 @@ public class MethodUtils {
                     result = validateParamsNoVarArgs(method, newParams);
                 }
             }
-            else if(newParams.length == method.getParameterCount() - 1){
+            else if(newParams.length == methodParamCount - 1){
                 //If provided params are one less than expected, the method MUST be varArgs
                 if(method.isVarArgs()){
                     result = validateParamsWithEmptyVarArgs(method, newParams);
@@ -85,15 +89,17 @@ public class MethodUtils {
         }
         else{
             //If no newParams are provided, the method must either have no params, or 1 param that is a varArg.
-            result = method.getParameterCount() == 0 || (method.getParameterCount() == 1 && method.isVarArgs());
+            result = methodParamCount == 0 || (methodParamCount == 1 && method.isVarArgs());
         }
 
         return result;
     }
 
     private static boolean validateParamsNoVarArgs(Method method, Object...newParams){
+        int methodParamCount = method.getParameterTypes().length;
+
         boolean result = true;
-        for(int i = 0; i < method.getParameterCount(); i++){
+        for(int i = 0; i < methodParamCount; i++){
             if(!method.getParameterTypes()[i].isAssignableFrom(newParams[i].getClass())) {
                 //If any parameter type is not assignable, the loop should end and method should return false, this is not a match
                 result = false;
@@ -105,9 +111,11 @@ public class MethodUtils {
     }
 
     private static boolean validateParamsWithVarArgs(Method method, Object...newParams){
+        int methodParamCount = method.getParameterTypes().length;
+
         boolean result = true;
-        for(int i = 0; i < method.getParameterCount(); i++){
-            if(i < method.getParameterCount() - 1){
+        for(int i = 0; i < methodParamCount; i++){
+            if(i < methodParamCount - 1){
                 //If it's not the last parameter, then it's not the varargs parameter yet
                 if(!method.getParameterTypes()[i].isAssignableFrom(newParams[i].getClass())) {
                     //If any parameter type is not assignable, the loop should end and method should return false, this is not a match
@@ -127,9 +135,11 @@ public class MethodUtils {
     }
 
     private static boolean validateParamsWithEmptyVarArgs(Method method, Object...newParams){
+        int methodParamCount = method.getParameterTypes().length;
+
         boolean result = true;
         //Only loop through all but the last argument to validate
-        for(int i = 0; i < method.getParameterCount() - 1; i++){
+        for(int i = 0; i < methodParamCount - 1; i++){
             if(!method.getParameterTypes()[i].isAssignableFrom(newParams[i].getClass())) {
                 //If any parameter type is not assignable, the loop should end and method should return false, this is not a match
                 result = false;
